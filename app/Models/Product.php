@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 #[Fillable([
     'category_id',
@@ -17,8 +19,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'stock_quantity',
     'is_active',
 ])]
-class Product extends Model
+class Product extends Model implements HasMedia
 {
+    use InteractsWithMedia;
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
@@ -37,5 +40,10 @@ class Product extends Model
     public function cartItems(): HasMany
     {
         return $this->hasMany(CartItem::class);
+    }
+
+    public function wishlistItems(): HasMany
+    {
+        return $this->hasMany(WishlistItem::class);
     }
 }

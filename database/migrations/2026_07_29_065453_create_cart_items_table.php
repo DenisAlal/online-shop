@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('cart_id')
-                ->nullable()
                 ->constrained()
                 ->cascadeOnDelete();
 
