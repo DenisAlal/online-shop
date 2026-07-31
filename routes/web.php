@@ -7,9 +7,11 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\PromoController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-Route::inertia('/', 'Index')->name('home');
+Route::get('/', HomeController::class)->name('home');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
@@ -24,14 +26,14 @@ Route::middleware('admin')->group(function () {
         ->names('admin.categories');
     Route::resource('/admin/products', ProductController::class)
         ->names('admin.products');
-    Route::resource('/admin/promo', PromoController::class)
+    Route::resource('/admin/promotions', PromoController::class)
         ->names('admin.promo');
-    Route::resource('/admin/order', OrderController::class)
-        ->names('admin.order');
+    Route::resource('/admin/orders', OrderController::class)
+        ->names('admin.orders');
 });
 
 Route::get('/media/{mediaId}/{filename}', function (int $mediaId) {
-    $media = \Spatie\MediaLibrary\MediaCollections\Models\Media::findOrFail($mediaId);
+    $media = Media::findOrFail($mediaId);
 
     return response()->file($media->getPath());
 })->where('mediaId', '\d+')->name('media');

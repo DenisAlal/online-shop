@@ -7,27 +7,22 @@ use App\Models\Attribute;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductAttribute;
+use App\Traits\MediaUrlTrait;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-function mediaUrl(Product $product): string
-{
-    $url = $product->getFirstMediaUrl('images');
-
-    return preg_replace('/^\/storage\/(\d+)\//', '/media/$1/', $url);
-}
-
 class ProductController extends Controller
 {
+    use MediaUrlTrait;
     public function index(): Response
     {
         $products = Product::with('category')
-            ->paginate(10)
-            ->through(fn(Product $product) => [
+            ->paginate(15)
+            ->through(fn (Product $product) => [
                 ...$product->toArray(),
-                'image' => mediaUrl($product),
+                'image' => $this->mediaUrl($product),
             ]);
 
         return Inertia::render('Admin/Products/Index', [
@@ -79,18 +74,6 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index');
     }
 
-    public function show(Product $product): Response
-    {
-        $product->load('category', 'attributes.attribute');
-
-        return Inertia::render('Admin/Products/Show', [
-            'product' => [
-                ...$product->toArray(),
-                'image' => mediaUrl($product),
-            ],
-        ]);
-    }
-
     public function edit(Product $product): Response
     {
         $categories = Category::all();
@@ -100,7 +83,7 @@ class ProductController extends Controller
         return Inertia::render('Admin/Products/Edit', [
             'product' => [
                 ...$product->toArray(),
-                'image' => mediaUrl($product),
+                'image' => $this->mediaUrl($product),
             ],
             'categories' => $categories,
         ]);
@@ -111,7 +94,7 @@ class ProductController extends Controller
         $validated = $request->validate([
             'category_id' => 'nullable|exists:categories,id',
             'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:products,slug,' . $product->id,
+            'slug' => 'required|string|max:255|unique:products,slug,'.$product->id,
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'discount' => 'required|integer|min:0|max:100',
@@ -143,10 +126,15 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index');
     }
 
-    public function destroy(Product $product): RedirectResponse
+    public function destroy(Request $request, Product $product): RedirectResponse
     {
         $product->delete();
 
-        return redirect()->route('admin.products.index');
+        $page = $request->integer('page');
+        if ($page > 1 && Product::paginate(15, ['*'], 'page', $page)->isEmpty()) {
+            $page--;
+        }
+
+        return redirect()->route('admin.products.index', ['page' => $page ?: null]);
     }
 }

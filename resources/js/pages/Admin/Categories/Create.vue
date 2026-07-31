@@ -21,7 +21,7 @@ function submit() {
     <AdminLayout>
         <h1>Создать категорию</h1>
 
-        <form @submit.prevent="submit" class="form">
+        <form @submit.prevent="submit" class="form form--narrow">
             <div class="field">
                 <label>Название</label>
                 <input v-model="form.name" />
@@ -49,56 +49,7 @@ function submit() {
                 </select>
             </div>
 
-            <button type="submit" :disabled="form.processing" class="btn">Сохранить</button>
+            <button type="submit" :disabled="form.processing" class="btn btn--form">Сохранить</button>
         </form>
     </AdminLayout>
 </template>
-
-<style scoped>
-h1 {
-    margin-bottom: 20px;
-}
-
-.form {
-    max-width: 500px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.field {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.field label {
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-.field input, .field select, .field textarea {
-    padding: 8px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-}
-
-.error {
-    color: #dc2626;
-    font-size: 0.8rem;
-}
-
-.btn {
-    align-self: flex-start;
-    padding: 10px 24px;
-    background: #2563eb;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.btn:disabled {
-    opacity: 0.5;
-}
-</style>

@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { PencilIcon, TrashIcon } from '@heroicons/vue/24/outline';
-import { Link, usePage, router } from '@inertiajs/vue3';
+import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/vue/24/outline';
+import { usePage, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import Button from '@/components/Button.vue';
 import ConfirmModal from '@/components/ConfirmModal.vue';
+import Pagination from '@/components/Pagination.vue';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import type { PaginatedResponse, Category } from '@/types/models';
-const { categories } = usePage<{ categories: PaginatedResponse<Category> }>()
-    .props;
+const page = usePage<{ categories: PaginatedResponse<Category> }>();
+const { categories } = page.props;
 
 const categoryToDelete = ref<Category | null>(null);
 
@@ -18,8 +19,10 @@ function destroy() {
 
     const id = categoryToDelete.value.id;
     categoryToDelete.value = null;
+    const pageNumber = page.props.categories.current_page;
     router.visit(`/admin/categories/${id}`, {
         method: 'delete',
+        data: { page: pageNumber },
         preserveState: false,
     });
 }
@@ -27,9 +30,11 @@ function destroy() {
 
 <template>
     <AdminLayout>
-        <div class="header">
+        <div class="action_panel">
             <h1>Категории</h1>
-            <Button icon="plus" href="/admin/categories/create">Создать</Button>
+            <Button href="/admin/categories/create">
+                <PlusIcon class="h-5 w-5 text-shadow-white" />Создать</Button
+            >
         </div>
 
         <table>
@@ -45,11 +50,7 @@ function destroy() {
             <tbody>
                 <tr v-for="cat in categories.data" :key="cat.id">
                     <td>{{ cat.id }}</td>
-                    <td>
-                        <Link :href="`/admin/categories/${cat.id}`">{{
-                            cat.name
-                        }}</Link>
-                    </td>
+                    <td>{{cat.name }}</td>
                     <td>{{ cat.slug }}</td>
                     <td>{{ cat.parent?.name ?? '—' }}</td>
                     <td class="actions">
@@ -69,6 +70,13 @@ function destroy() {
                 </tr>
             </tbody>
         </table>
+        <Pagination
+            v-if="categories.data.length !== 0"
+            :links="categories.links"
+            :from="categories.from"
+            :to="categories.to"
+            :total="categories.total"
+        />
         <ConfirmModal
             :show="!!categoryToDelete"
             title="Удалить категорию"
@@ -78,40 +86,3 @@ function destroy() {
         />
     </AdminLayout>
 </template>
-
-<style scoped>
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-h1 {
-    margin: 0;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-th,
-td {
-    text-align: left;
-    padding: 10px 12px;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-th {
-    font-weight: 600;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    color: #6b7280;
-}
-
-.actions {
-    display: flex;
-    gap: 8px;
-}
-</style>

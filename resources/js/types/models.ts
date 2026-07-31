@@ -25,6 +25,25 @@ export interface Product {
     created_at: string;
     updated_at: string;
 }
+export interface Promo {
+    id: number;
+    title: string;
+    description: string | null;
+    link_url: string | null;
+    sort_order: number;
+    is_active: boolean;
+    starts_at: string | null;
+    ends_at: string | null;
+    image: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PageLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
 
 export interface PaginatedResponse<T> {
     data: T[];
@@ -32,4 +51,7 @@ export interface PaginatedResponse<T> {
     last_page: number;
     per_page: number;
     total: number;
+    from: number;
+    to: number;
+    links: PageLink[];
 }

@@ -14,19 +14,10 @@ class CategoryController extends Controller
     public function index(): Response
     {
         $categories = Category::with('parent')
-            ->paginate(10);
+            ->paginate(15);
 
         return Inertia::render('Admin/Categories/Index', [
             'categories' => $categories,
-        ]);
-    }
-
-    public function show(Category $category): Response
-    {
-        $category->load('parent', 'products');
-
-        return Inertia::render('Admin/Categories/Show', [
-            'category' => $category,
         ]);
     }
 
@@ -77,10 +68,15 @@ class CategoryController extends Controller
         return redirect()->route('admin.categories.index');
     }
 
-    public function destroy(Category $category): RedirectResponse
+    public function destroy(Request $request, Category $category): RedirectResponse
     {
         $category->delete();
 
-        return redirect()->route('admin.categories.index');
+        $page = $request->integer('page');
+        if ($page > 1 && Category::paginate(15, ['*'], 'page', $page)->isEmpty()) {
+            $page--;
+        }
+
+        return redirect()->route('admin.categories.index', ['page' => $page ?: null]);
     }
 }

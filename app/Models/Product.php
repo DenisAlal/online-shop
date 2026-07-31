@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Interfaces\HasMediaUrlInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,9 +20,10 @@ use Spatie\MediaLibrary\InteractsWithMedia;
     'stock_quantity',
     'is_active',
 ])]
-class Product extends Model implements HasMedia
+class Product extends Model implements HasMedia, HasMediaUrlInterface
 {
     use InteractsWithMedia;
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
