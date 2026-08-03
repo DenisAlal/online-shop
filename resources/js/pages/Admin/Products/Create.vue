@@ -80,7 +80,7 @@ function submit() {
 
                 <div class="field">
                     <label>Цена (₽)</label>
-                    <input v-model="form.price" type="number" step="0.01" min="0" />
+                    <input v-model="form.price" type="number" min="0" />
                     <div v-if="form.errors.price" class="error">{{ form.errors.price }}</div>
                 </div>
 

@@ -47,6 +47,9 @@ function submit() {
                         {{ cat.name }}
                     </option>
                 </select>
+                <div v-if="form.errors.parent_id" class="error">
+                    {{ form.errors.parent_id }}
+                </div>
             </div>
 
             <button type="submit" :disabled="form.processing" class="btn btn--form">Сохранить</button>

@@ -5,6 +5,7 @@ import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
 import { bunny } from 'laravel-vite-plugin/fonts';
 import { defineConfig } from 'vite';
+import svgLoader from 'vite-svg-loader';
 
 export default defineConfig({
     plugins: [
@@ -27,6 +28,7 @@ export default defineConfig({
                 },
             },
         }),
+        svgLoader(),
         wayfinder({
             formVariants: true,
         }),

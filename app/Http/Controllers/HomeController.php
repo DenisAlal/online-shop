@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
+use App\Models\Product;
 use App\Models\Promotion;
 use App\Traits\MediaUrlTrait;
 use Illuminate\Http\Request;
@@ -22,8 +24,18 @@ class HomeController extends Controller
                 'image' => $this->mediaUrl($promotion),
             ]);
 
+        $products = Product::withDiscount()
+            ->with('media')
+            ->get()
+            ->map(fn (Product $product) => [
+                ...$product->toArray(),
+                'image' => $this->mediaUrl($product),
+            ]);
+
         return Inertia::render('Index', [
             'promotions' => $promotions,
+            'catalog' => Category::tree(),
+            'products' => $products,
         ]);
     }
 }

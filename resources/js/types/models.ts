@@ -10,6 +10,13 @@ export interface Category {
     updated_at: string;
 }
 
+export interface CatalogCategory {
+    id: number;
+    name: string;
+    slug: string;
+    children: CatalogCategory[];
+}
+
 export interface Product {
     id: number;
     category_id: number | null;
@@ -24,6 +31,14 @@ export interface Product {
     image: string | null;
     created_at: string;
     updated_at: string;
+}
+
+export interface DiscountProduct {
+    id: number;
+    name: string;
+    price: number;
+    discount: number;
+    image: string | null;
 }
 export interface Promo {
     id: number;
@@ -54,4 +69,11 @@ export interface PaginatedResponse<T> {
     from: number;
     to: number;
     links: PageLink[];
+}
+
+export interface CatalogNodeModel {
+    id: number;
+    name: string;
+    slug: string;
+    children: CatalogNodeModel[];
 }

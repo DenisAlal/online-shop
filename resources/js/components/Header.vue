@@ -1,13 +1,20 @@
 <script setup lang="ts">
-import { router, usePage } from '@inertiajs/vue3';
+import { ChevronDownIcon } from '@heroicons/vue/24/outline';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import IconShop from '@/assets/icons/shop.svg';
+import type { CatalogCategory } from '@/types/models';
 
 const page = usePage<{
     auth: { user: { name: string; email: string; role_type: number } | null };
+    catalog: CatalogCategory[];
 }>();
 const user = page.props.auth?.user;
+const catalog = page.props.catalog;
 
 const showDropdown = ref(false);
+const showDropdownCatalog = ref(false);
+const activeCatalogIndex = ref(0);
 
 function handleLogout() {
     router.visit('/logout', {
@@ -21,23 +28,89 @@ function handleLogout() {
 <template>
     <header class="header">
         <nav class="nav">
-            <a href="/" class="logo">Магазин</a>
+            <div class="nav-catalog">
+                <a href="/" class="logo">
+                    <IconShop class="icon-logo" />
+                </a>
+
+                <button
+                    class="nav-catalog-button"
+                    @click="showDropdownCatalog = !showDropdownCatalog"
+                >
+                    Категории
+                    <ChevronDownIcon
+                        :class="['nav-chevron', { open: showDropdownCatalog }]"
+                    />
+                </button>
+                <Transition name="catalog-dropdown">
+                    <div
+                        v-if="showDropdownCatalog"
+                        class="catalog-dropdown"
+                        @mouseleave="showDropdownCatalog = false"
+                    >
+                        <div
+                            class="catalog-menu"
+                            @mouseenter="activeCatalogIndex = 0"
+                        >
+                            <a
+                                v-for="(cat, i) in catalog"
+                                :key="cat.id"
+                                :href="`/category/${cat.slug}`"
+                                class="catalog-menu-item"
+                                :class="{ active: activeCatalogIndex === i }"
+                                @mouseenter="activeCatalogIndex = i"
+                            >
+                                {{ cat.name }}
+                                <svg
+                                    v-if="cat.children.length"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="2"
+                                    stroke="currentColor"
+                                    class="menu-arrow"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="m8.25 4.5 7.5 7.5-7.5 7.5"
+                                    />
+                                </svg>
+                            </a>
+                        </div>
+
+                        <div v-if="catalog.length" class="catalog-panel">
+                            <div
+                                v-for="child in catalog[activeCatalogIndex]?.children ?? []"
+                                :key="child.id"
+                                class="catalog-panel-group"
+                            >
+                                <Link
+                                    :href="`/category/${child.slug}`"
+                                    class="group-title"
+                                >
+                                    {{ child.name }}
+                                </Link>
+                                <ul v-if="child.children.length" class="group-list">
+                                    <li v-for="sub in child.children" :key="sub.id">
+                                        <Link :href="`/category/${sub.slug}`">
+                                            {{ sub.name }}
+                                        </Link>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </Transition>
+            </div>
 
             <div v-if="user" class="user-menu">
                 <button class="user-btn" @click="showDropdown = !showDropdown">
                     <span class="avatar">{{ user.name[0] }}</span>
                     {{ user.name }}
-                    <svg
+                    <ChevronDownIcon
                         :class="['chevron', { open: showDropdown }]"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                    >
-                        <path
-                            d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
-                        />
-                    </svg>
+                    />
                 </button>
 
                 <Transition name="dropdown">
@@ -52,10 +125,14 @@ function handleLogout() {
                             >
                         </li>
                         <li v-if="user.role_type === 1">
-                            <a href="/admin" class="dropdown-item">Панель управления</a>
+                            <a href="/admin" class="dropdown-item"
+                                >Панель управления</a
+                            >
                         </li>
                         <li>
-                            <a href="/settings" class="dropdown-item">Настройки</a>
+                            <a href="/settings" class="dropdown-item"
+                                >Настройки</a
+                            >
                         </li>
                         <li><hr class="divider" /></li>
                         <li>
@@ -89,7 +166,7 @@ function handleLogout() {
 }
 
 .nav {
-    max-width: 1280px;
+    max-width: 80vw;
     margin: 0 auto;
     padding: 0 24px;
     height: 64px;
@@ -98,16 +175,146 @@ function handleLogout() {
     justify-content: space-between;
 }
 
-.logo {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #111827;
-    text-decoration: none;
-    letter-spacing: -0.02em;
+.nav-catalog {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    padding: 6px 12px 6px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    background: #fff;
+    cursor: pointer;
+    color: #374151;
+    transition:
+        box-shadow 0.15s,
+        border-color 0.15s;
 }
 
-.logo:hover {
+.nav-catalog:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.nav-catalog-button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+}
+
+.nav-chevron {
+    width: 16px;
+    height: 16px;
+    stroke-width: 3px;
+    transition: transform 0.2s;
+    color: #9ca3af;
+}
+
+.nav-chevron.open {
+    transform: rotate(180deg);
+}
+
+.catalog-dropdown {
+    position: absolute;
+    left: 11.5vw;
+    top: calc(100% + 2px);
+    display: flex;
+    min-width: 360px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.catalog-menu {
+    flex: 0 0 240px;
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    border-right: 1px solid #e5e7eb;
+}
+
+.catalog-menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 12px;
+    border-radius: 6px;
+    color: #374151;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.catalog-menu-item:hover {
+    background: #f3f4f6;
+}
+
+.catalog-menu-item.active {
+    background: #eff6ff;
     color: #2563eb;
+    font-weight: 600;
+}
+
+.menu-arrow {
+    width: 14px;
+    height: 14px;
+    color: #9ca3af;
+}
+
+.catalog-panel {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 20px;
+    min-width: 280px;
+    padding: 16px 20px;
+}
+
+.catalog-panel-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.group-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    text-decoration: none;
+}
+
+.group-title:hover {
+    color: #2563eb;
+}
+
+.group-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.group-list a {
+    color: #6b7280;
+    text-decoration: none;
+    font-size: 0.88rem;
+}
+
+.group-list a:hover {
+    color: #2563eb;
+}
+
+.dropdown-leave-active {
+    transition: opacity 0.15s;
 }
 
 .user-menu {
@@ -152,6 +359,13 @@ function handleLogout() {
 .chevron {
     transition: transform 0.2s;
     color: #9ca3af;
+    width: 16px;
+    height: 16px;
+}
+
+.icon-logo {
+    width: 30px;
+    height: 30px;
 }
 
 .chevron.open {
@@ -172,23 +386,8 @@ function handleLogout() {
     padding: 6px;
 }
 
-.dropdown-enter-active {
-    transition:
-        opacity 0.15s,
-        transform 0.15s;
-}
-
-.dropdown-enter-from {
-    opacity: 0;
-    transform: translateY(-6px);
-}
-
 .dropdown-leave-active {
-    transition: opacity 0.1s;
-}
-
-.dropdown-leave-to {
-    opacity: 0;
+    transition: opacity 0.15s;
 }
 
 .dropdown-item {

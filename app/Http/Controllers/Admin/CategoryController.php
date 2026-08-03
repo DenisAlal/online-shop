@@ -36,7 +36,7 @@ class CategoryController extends Controller
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:categories,slug',
             'description' => 'nullable|string',
-            'parent_id' => 'nullable|exists:categories,id',
+            'parent_id' => ['nullable', 'exists:categories,id', $this->depthRule()],
         ]);
 
         Category::create($validated);
@@ -60,12 +60,38 @@ class CategoryController extends Controller
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:categories,slug,' . $category->id,
             'description' => 'nullable|string',
-            'parent_id' => 'nullable|exists:categories,id',
+            'parent_id' => ['nullable', 'exists:categories,id', $this->depthRule()],
         ]);
 
         $category->update($validated);
 
         return redirect()->route('admin.categories.index');
+    }
+
+    private function depthRule(): \Closure
+    {
+        return function (string $attribute, $value, \Closure $fail): void {
+            if (! $value) {
+                return;
+            }
+
+$depth = $this->categoryDepth((int) $value);
+
+            if ($depth >= 2) {
+                $fail('Максимальная вложенность категорий — 3 уровня.');
+            }
+        };
+    }
+
+    private function categoryDepth(int $categoryId, int $depth = 0): int
+    {
+        $category = Category::with('parent')->find($categoryId);
+
+        if (! $category->parent) {
+            return $depth;
+        }
+
+        return $this->categoryDepth($category->parent->id, $depth + 1);
     }
 
     public function destroy(Request $request, Category $category): RedirectResponse

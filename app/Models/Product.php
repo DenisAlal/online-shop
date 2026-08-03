@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Interfaces\HasMediaUrlInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -47,5 +48,12 @@ class Product extends Model implements HasMedia, HasMediaUrlInterface
     public function wishlistItems(): HasMany
     {
         return $this->hasMany(WishlistItem::class);
+    }
+
+    public static function withDiscount(): Builder
+    {
+        return self::query()
+            ->whereNotNull('discount')
+            ->where('discount', '!=', 0);
     }
 }
